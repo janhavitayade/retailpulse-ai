@@ -14,9 +14,11 @@ from datetime import datetime
 # Page Configuration
 # ============================================================
 
+ICON_PATH = Path(__file__).resolve().parents[1] / "asset" / "icon.png"
+
 st.set_page_config(
     page_title="RetailPulse AI | Rossmann Sales Forecasting",
-    page_icon="🛍️",
+    page_icon=str(ICON_PATH) if ICON_PATH.exists() else "🛍️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
