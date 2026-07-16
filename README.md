@@ -1,116 +1,83 @@
-## Initial Data Understanding & EDA Findings
+# 🛍️ RetailPulse AI
+### Forecasting the Pulse of Rossmann's Retail Sales
 
-The Rossmann dataset contains historical daily sales records for 1,115 retail stores over a period of approximately 2.5 years.
+> An end-to-end sales forecasting journey — from simple averages to gradient boosting — built on real-world retail data from **1,115 Rossmann drugstores** across Germany.
 
-### Dataset Overview
-
-* **Train Dataset:** 1,017,209 rows and 9 columns
-* **Store Dataset:** 1,115 rows and 10 columns
-* **Date Range:** January 1, 2013 to July 31, 2015
-* **Unique Dates:** 942 days
-* **Target Variable:** Sales
-
-### Data Quality Assessment
-
-The train dataset contains no missing values. However, the store dataset contains missing values in competition- and promotion-related fields:
-
-* CompetitionDistance
-* CompetitionOpenSinceMonth
-* CompetitionOpenSinceYear
-* Promo2SinceWeek
-* Promo2SinceYear
-* PromoInterval
-
-These missing values are likely business-related rather than data errors, indicating that a store may not have a nearby competitor or may not participate in the Promo2 campaign.
-
-### Sales Distribution
-
-Summary statistics for the Sales variable:
-
-* Mean Sales: 5,773.82
-* Median Sales: 5,744
-* Minimum Sales: 0
-* Maximum Sales: 41,551
-* Standard Deviation: 3,849.93
-
-The mean and median sales values are very close, suggesting that the overall sales distribution is reasonably balanced, although some high-sales days are present.
-
-### Zero Sales Analysis
-
-A total of 172,871 records have sales equal to zero.
-
-Investigation of store status revealed:
-
-* 172,817 zero-sales records occurred when the store was closed (Open = 0)
-* Only 54 zero-sales records occurred when the store was open (Open = 1)
-
-This indicates that the vast majority of zero sales are operationally driven by store closures rather than unusual customer demand patterns.
-
-### Forecasting Perspective
-
-Since the objective is to build and compare multiple forecasting models, the dataset provides sufficient historical coverage with 942 daily observations across more than two years. The data is expected to exhibit both trend and seasonal behavior, making it suitable for classical forecasting methods (Moving Average, Exponential Smoothing), statistical models (ARIMA, SARIMA, SARIMAX), and machine learning approaches (Random Forest, XGBoost, LightGBM, CatBoost).
-
-The next step is to aggregate daily sales across all stores to create a single time-series representation for trend and seasonality analysis.
-
-# Exploratory Data Analysis (EDA) Summary
-
-This repository contains the exploratory data analysis and baseline findings for our retail sales forecasting model. The following matrix summarizes the key numerical evidence discovered during data exploration and translates these findings into actionable business interpretations.
-
-## Analysis Matrix
-
-| Analysis Area | Finding & Numerical Evidence | Business Interpretation |
-| :--- | :--- | :--- |
-| **Dataset Size** | **Train:** 1,017,209 rows × 9 columns<br>**Store:** 1,115 rows × 10 columns | Provides a sufficiently large data footprint for robust forecasting and machine learning modeling. |
-| **Time Coverage** | Nearly 3 years of historical data<br>• Timeline: 2013-01-01 to 2015-07-31<br>• 942 unique days | Offers enough historical depth to effectively capture long-term trends and yearly seasonality. |
-| **Sales Distribution** | Sales are reasonably centered<br>• Mean: 5,773.82 \| Median: 5,744<br>• Std Dev: 3,849.93 \| Max: 41,551 | The proximity of the mean and median indicates a relatively balanced distribution across active periods. |
-| **Zero Sales Analysis** | **172,871** total rows with `Sales = 0`<br>• **172,817** of these occurred when `Open = 0` | Zero sales primarily reflect structural store closures rather than a natural lack of customer demand. |
-| **Trend Analysis** | Long-term upward trend observed | Visible in daily aggregated sales series, indicating consistent organic business growth over time. |
-| **Weekly Seasonality** | **Strong weekly patterns exist:**<br>• Mon: 7,809 \| Tue: 7,005 \| Wed: 6,556<br>• Thu: 6,248 \| Fri: 6,723 \| Sat: 5,848<br>• Sun: 204 | Day of the week significantly influences sales, with Mondays acting as the peak traffic driver and Sundays virtually flat due to closures. |
-| **State Holiday Effect** | **Sales collapse during holidays:**<br>• No Holiday: ~5,800–6,000<br>• Public Holiday: 291 \| Easter: 214 \| Christmas: 169 | The vast majority of physical storefronts remain closed during major state holidays. |
-| **School Holiday Effect** | **Moderate positive impact:**<br>• No School Holiday: 5,621<br>• School Holiday: 6,477 | Households and families likely display higher shopping frequencies and spend volumes during school breaks. |
-| **Promo Effect** | **Strong positive impact:**<br>• No Promo: 4,406<br>• Active Promo: 7,991 | Running promotional campaigns increases average sales by **~81%**, making it a primary performance driver. |
-| **Store Type Effect** | **Store Type B dominates revenue:**<br>• Type B: 10,059 \| Type A: 5,738<br>• Type C: 5,724 \| Type D: 5,642 | Store Type B locations generate significantly higher revenue per store compared to all other formats. |
-| **Assortment Effect** | **Larger assortments improve sales:**<br>• Extra: 8,554 \| Extended: 6,059 \| Basic: 5,481 | Offering a wider variety of product lines successfully attracts a larger customer volume and higher basket sizes. |
-| **Competition Distance** | **Close competitors correlate with higher sales:**<br>• Very Close: 6,096 \| Close: 5,758<br>• Far: 5,680 \| Moderate: 5,570 | High-traffic commercial locations naturally attract both Rossmann storefronts and competing brands simultaneously. |
-| **Promo2 Effect** | **Promo2 stores show lower average sales:**<br>• Promo2 = 0: 6,125<br>• Promo2 = 1: 5,424 | This counterintuitive drop likely reflects a selection bias, where continuous promotions are deployed specifically to stabilize underperforming stores. |
+🔗 **Live Demo:** [retailpulse-forecasting-ai.streamlit.app](https://retailpulse-forecasting-ai.streamlit.app/)
+📄 **Full Project Report (PDF):** [RetailPulse_AI_Summary_Report.pdf](./reports/RetailPulse_AI_Summary_Report.pdf)
+📦 **Data Source:** [Kaggle — Rossmann Store Sales](https://www.kaggle.com/c/rossmann-store-sales/data)
 
 ---
 
-## Core Project Takeaways
-1. **Feature Engineering Targets:** Day of the week, promotional status (`Promo`), and store closures (`Open`) represent the highest-variance features for baseline predictive performance.
-2. **Data Cleaning:** Rows where `Open = 0` should be handled carefully during training since they introduce deterministic zeroes into the target variable (`Sales`).
+## 📖 The Story
 
-# Phase 1 Findings: Classical Time Series Forecasting
+Every day, across 1,115 Rossmann stores, cash registers ring up sales shaped by forces invisible to a spreadsheet — a Monday rush, a promotion, a nearby competitor opening its doors, a public holiday shutting everything down. **RetailPulse AI** is the story of turning that noise into a signal: a journey through four modeling phases, each one asking the same question a little more precisely — *"What will tomorrow's sales look like?"*
 
-## Objective
-
-The objective of Phase 1 was to establish a forecasting benchmark by evaluating classical time series models on aggregated daily Rossmann sales data.
-
-Since the original dataset contains sales information for 1,115 stores, store-level sales were aggregated into a single daily sales series:
-
-**Date → Total Daily Sales**
-
-This transformed the problem into a univariate time series forecasting task.
+This project doesn't just fit a model and stop. It's a progression — starting with the simplest possible forecasts, layering in statistical rigor, testing automated decomposition, and finally arriving at a machine learning model that understands *why* sales move the way they do.
 
 ---
 
-# Models Evaluated
+## 📦 The Dataset
 
-The following forecasting approaches were implemented:
+The foundation of this story is Rossmann's historical daily sales data — **1,017,209 records across 1,115 stores**, spanning **January 2013 to July 2015** (942 unique days).
 
-| Category | Models |
+| Field | Description |
 |---|---|
-| Baseline Models | Naive Forecast, Seasonal Naive Forecast |
-| Smoothing Models | Moving Average, Weighted Moving Average |
-| Exponential Smoothing Models | Simple Exponential Smoothing (SES), Holt's Trend Model, Holt-Winters Triple Exponential Smoothing |
+| **Id** | An Id representing a (Store, Date) pair, used only in the test set |
+| **Store** | A unique Id for each store |
+| **Sales** | The turnover for a given day *(the target variable)* |
+| **Customers** | Number of customers on a given day |
+| **Open** | Whether the store was open — `0` = closed, `1` = open |
+| **StateHoliday** | `a` = public holiday, `b` = Easter, `c` = Christmas, `0` = none. Nearly all stores close on state holidays; schools close on public holidays and weekends |
+| **SchoolHoliday** | Whether the (Store, Date) was affected by public school closures |
+| **StoreType** | Differentiates 4 store models: `a`, `b`, `c`, `d` |
+| **Assortment** | Assortment level: `a` = basic, `b` = extra, `c` = extended |
+| **CompetitionDistance** | Distance (in meters) to the nearest competitor store |
+| **CompetitionOpenSince[Month/Year]** | Approximate month/year the nearest competitor opened |
+| **Promo** | Whether the store is running a promo that day |
+| **Promo2** | Continuing, consecutive promotion — `0` = not participating, `1` = participating |
+| **Promo2Since[Year/Week]** | Year and calendar week the store joined Promo2 |
+| **PromoInterval** | Months when a new Promo2 round starts, e.g. `"Feb,May,Aug,Nov"` |
+
+**Data quality snapshot:**
+
+| Check | Finding |
+|---|---|
+| Missing values (train) | None |
+| Missing values (store) | Present in competition & Promo2 fields — business-driven, not errors |
+| Zero-sales records | 172,871 total → **172,817** occurred while `Open = 0`; only 54 occurred while open |
+| Sales distribution | Mean: 5,773.82 · Median: 5,744 · Std Dev: 3,849.93 · Max: 41,551 |
+
+The takeaway from the very first look at the data: **closed stores, not weak demand, explain almost every zero-sales day.** That single insight would go on to shape every phase that followed.
 
 ---
 
-# Model Performance Analysis
+## 🧭 Chapter 1 — Phase 1: Learning to Walk (Classical Forecasting)
+
+*App page: `📊 Phase 1 - Data Understanding`*
+
+Before reaching for anything sophisticated, the story starts with the basics: aggregate every store's sales into one daily total, and see what patterns emerge.
+
+Two things jumped out immediately:
+
+- A **gradual upward trend** in sales from 2013 to 2015.
+- A **strong weekly rhythm** — Mondays roaring, Sundays going nearly silent.
+
+| Day | Average Sales |
+|---|---:|
+| Monday | 7,809 |
+| Tuesday | 7,005 |
+| Wednesday | 6,556 |
+| Thursday | 6,248 |
+| Friday | 6,723 |
+| Saturday | 5,848 |
+| Sunday | 204 |
+
+Seven classical models were put to the test — from a naive "tomorrow = today" guess up to full Holt-Winters smoothing:
 
 | Model | MAE | RMSE | MAPE |
 |---|---:|---:|---:|
-| Holt-Winters | 1,250,170 | 1,789,503 | 88.84% |
+| **Holt-Winters** | **1,250,170** | **1,789,503** | **88.84%** |
 | SES | 2,333,334 | 3,228,629 | 407.20% |
 | Moving Average | 2,306,305 | 3,264,030 | 438.61% |
 | Weighted Moving Average | 2,408,865 | 3,476,268 | 489.63% |
@@ -118,600 +85,297 @@ The following forecasting approaches were implemented:
 | Seasonal Naive | 2,911,575 | 4,072,885 | 119.21% |
 | Holt | 5,190,674 | 6,321,653 | 712.32% |
 
----
+**Why Holt-Winters won:** it was the only model to explicitly capture *all three* ingredients present in the data — level, trend, and weekly seasonality. Holt's trend-only model, by contrast, ignored seasonality entirely and paid for it with the worst error of the lot.
 
-# Analytical Insights
+> 🧠 *MAPE values look high across the board — that's because store closures create a flood of near-zero sales days, and percentage errors become unstable near zero. MAE and RMSE were treated as the primary metrics; MAPE as secondary.*
 
-## 1. Trend Analysis
-
-The aggregated sales series showed a gradual upward movement from 2013 to 2015.
-
-This indicates that the business experienced overall sales growth over time.
-
-Possible business factors contributing to this trend:
-
-- Increasing customer base
-- Store performance improvement
-- Promotional activities
-- Market expansion
-
-Models incorporating trend information performed better than simple baseline approaches.
+**Phase 1 verdict:** Holt-Winters sets the benchmark. Sales clearly aren't random — they trend, and they repeat weekly. Phase 2 asks whether a more statistically rigorous approach can do even better.
 
 ---
 
-## 2. Seasonality Analysis
+## 🧭 Chapter 2 — Phase 2: Getting Statistical (ARIMA & SARIMA)
 
-Exploratory analysis identified strong weekly seasonality.
+*App page: `📈 Phase 2 - ARIMA & SARIMA`*
 
-Average sales varied significantly by day of the week:
+With a benchmark in hand, the story turns to formal time-series statistics — starting with a simple question: **is this series even stationary?**
 
-| Day | Average Sales |
-|---|---:|
-| Monday | 7809 |
-| Tuesday | 7005 |
-| Wednesday | 6555 |
-| Thursday | 6247 |
-| Friday | 6723 |
-| Saturday | 5847 |
-| Sunday | 204 |
-
-The large difference between weekdays and Sundays indicates strong recurring customer behaviour patterns.
-
-This explains why:
-
-- Holt-Winters performed best
-- Holt's trend-only model performed poorly
-
-because Holt-Winters models both trend and seasonality.
-
----
-
-## 3. Model Behaviour Analysis
-
-### Holt-Winters (Best Performing Model)
-
-Holt-Winters achieved the lowest RMSE:
-
-**RMSE: 1.79 million**
-
-The model successfully captured:
-
-- Level component → average sales behaviour
-- Trend component → long-term growth
-- Seasonal component → weekly sales cycles
-
-Therefore, it was the most suitable classical forecasting approach for this dataset.
-
----
-
-### Simple Exponential Smoothing (SES)
-
-SES performed better than most baseline models because it adapts to recent sales levels.
-
-However, it cannot capture:
-
-- Growth trends
-- Weekly seasonal behaviour
-
----
-
-### Holt's Trend Model
-
-Holt's model captures:
-
-- Level
-- Trend
-
-but ignores seasonality.
-
-Since Rossmann sales contain strong weekly patterns, ignoring seasonality resulted in the highest RMSE.
-
----
-
-# Error Metric Interpretation
-
-RMSE and MAE were considered the primary evaluation metrics.
-
-MAPE values were relatively high because Rossmann contains a large number of zero-sales records caused by store closures.
-
-When actual sales values are close to zero, percentage-based errors become unstable.
-
-Therefore:
-
-Primary metrics:
-- RMSE
-- MAE
-
-Secondary metric:
-- MAPE
-
----
-
-# Business Interpretation
-
-The analysis shows that Rossmann sales forecasting cannot rely only on historical averages.
-
-Sales are influenced by:
-
-- Time-based trends
-- Weekly customer behaviour
-- Seasonal patterns
-
-A model that understands these patterns provides more accurate demand forecasts.
-
-Accurate sales forecasting can help businesses:
-
-- Optimize inventory planning
-- Improve staff allocation
-- Plan promotional campaigns
-- Reduce stock shortages and excess inventory
-
----
-
-# Phase 1 Conclusion
-
-Holt-Winters Triple Exponential Smoothing was selected as the best classical forecasting model.
-
-It provides the benchmark performance for the next phase, where advanced statistical models such as ARIMA, SARIMA, and SARIMAX will be evaluated.
-
-| Test              | Finding                        | Interpretation                          |
-| ----------------- | ------------------------------ | --------------------------------------- |
-| ADF Test          | p-value = 0.000064             | Daily sales series is stationary        |
-| ACF               | Strong spikes at 7, 14, 21, 28 | Weekly seasonality exists               |
-| PACF              | Strong spikes at 7 and 14      | Weekly autoregressive behavior          |
-| Seasonal Period   | 7 days                         | Retail sales repeat weekly              |
-| Modeling Decision | SARIMA required                | ARIMA alone may miss seasonal structure |
-
-| Test                     | Result                    | Conclusion                   |
-| ------------------------ | ------------------------- | ---------------------------- |
-| ADF (Original Series)    | p = 0.000064              | Stationary                   |
-| ADF (Differenced Series) | p = 3.75e-26              | Highly stationary            |
-| Differencing Required?   | No                        | d = 0 selected               |
-| Seasonal Pattern         | Strong at 7,14,21,28 lags | Weekly seasonality confirmed |
-
-| Model            | Observation                                 |
-| ---------------- | ------------------------------------------- |
-| ARIMA(1,0,1)     | Failed to capture weekly sales cycles       |
-| Error Metrics    | Higher than Holt-Winters                    |
-| Business Insight | Weekly seasonality dominates sales behavior |
-| Next Step        | Introduce seasonal component using SARIMA   |
-
-SARIMAX
-│
-├── ARIMA
-├── Seasonal ARIMA (SARIMA)
-├── ARIMAX
-└── SARIMAX
-
-| Metric | Winner                        |
-| ------ | ----------------------------- |
-| MAE    | Holt-Winters (1.25M vs 1.30M) |
-| RMSE   | Holt-Winters (1.79M vs 1.91M) |
-| MAPE   | SARIMA (71.61% vs 88.84%)     |
-
-SARIMA dramatically outperformed ARIMA,
-confirming that weekly seasonality is a major
-driver of Rossmann sales.
-
-The seasonal AR coefficient (0.9987)
-indicates strong dependence on sales
-from the same weekday in previous weeks.
-
-Compared with Holt-Winters,
-SARIMA achieved lower MAPE but slightly
-higher MAE and RMSE.
-
-| Analysis                   | Finding                                                                                  |
-| -------------------------- | ---------------------------------------------------------------------------------------- |
-| SARIMA(7,0,0)(1,0,1,7)     | Model could not be fitted due to overlapping lag 7 in seasonal and non-seasonal AR terms |
-| Root Cause                 | Lag 7 was included in both AR(7) and Seasonal AR(1, period=7) components                 |
-| Statistical Interpretation | Weekly seasonality is already explicitly modeled through the seasonal component          |
-| Modeling Decision          | Replace AR(7) with a lower-order AR component such as AR(5)                              |
-| Next Step                  | Evaluate SARIMA(5,0,0)(1,0,1,7) and compare with existing SARIMA model                   |
-
-| Analysis            | Finding                                                                                                           |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| ACF Analysis        | Strong seasonal spikes observed at lags 7, 14, 21, and 28                                                         |
-| PACF Analysis       | Weekly autoregressive behavior detected                                                                           |
-| Modeling Constraint | SARIMA(7,0,0)(1,0,1,7) is invalid because lag 7 appears in both seasonal and non-seasonal AR terms                |
-| Revised Model       | SARIMA(5,0,0)(1,0,1,7) selected to capture short-term autoregressive effects while preserving weekly seasonality  |
-| Objective           | Determine whether a higher-order AR component improves forecasting performance compared to SARIMA(1,0,1)(1,0,1,7) |
-
-| Analysis                | Finding                                                                                                           |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Stationarity Test (ADF) | Daily sales series is stationary (p-value < 0.05), therefore differencing was not required                        |
-| ACF Analysis            | Strong seasonal spikes observed at lags 7, 14, 21, and 28, indicating weekly seasonality                          |
-| PACF Analysis           | Significant spikes at lag 7 and lag 14 suggested autoregressive seasonal behavior                                 |
-| ARIMA(1,0,1)            | Failed to capture weekly seasonality, resulting in high forecasting error                                         |
-| SARIMA(1,0,1)(1,0,1,7)  | Successfully modeled weekly sales cycles and substantially reduced forecasting error                              |
-| Seasonal AR Coefficient | Seasonal AR(7) coefficient ≈ 0.999, indicating strong dependence on sales from the same weekday in previous weeks |
-| SARIMA(5,0,0)(1,0,1,7)  | Additional AR terms increased model complexity without improving forecast accuracy                                |
-| Phase 2 Winner          | SARIMA(1,0,1)(1,0,1,7) achieved the best balance of accuracy and model simplicity                                 |
-| Business Insight        | Weekly purchasing behavior is the dominant driver of Rossmann sales patterns                                      |
-| Modeling Insight        | Incorporating seasonality is more important than increasing non-seasonal autoregressive order                     |
-
-| Analysis                | Finding                                                                                                    |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Prophet Performance     | Prophet achieved MAE = 1.51M, RMSE = 2.10M, and MAPE = 107.32%                                             |
-| Trend Modeling          | Prophet successfully captured the long-term sales trend                                                    |
-| Seasonality Modeling    | Weekly and yearly seasonal components were automatically learned                                           |
-| Comparative Performance | Prophet underperformed both Holt-Winters and SARIMA models                                                 |
-| Best Statistical Model  | SARIMA(1,0,1)(1,0,1,7) remained the strongest forecasting model                                            |
-| Key Insight             | Explicit modeling of weekly seasonality produced more accurate forecasts than Prophet's automated approach |
-| Business Conclusion     | Rossmann sales are primarily driven by stable recurring weekly patterns rather than complex trend shifts   |
-| Phase 3 Conclusion      | Prophet provides interpretable forecasts but was not the most accurate model for this dataset              |
-
-## phase 4
-| Analysis             | Finding                                                                                                             |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Dataset Integration  | Training and store metadata were merged using Store ID                                                              |
-| Final Dataset        | Combined dataset contains daily sales transactions along with store-level business attributes                       |
-| Data Size            | Dataset contains 1,017,209 sales records across 1,115 stores                                                        |
-| Feature Availability | ML model will leverage promotional, competitive, holiday, and store characteristics                                 |
-| Missing Values       | Missing values are mainly related to optional business factors such as competitor information and promotion history |
-
-| Analysis               | Finding                                                                                               |
-| ---------------------- | ----------------------------------------------------------------------------------------------------- |
-| Date Transformation    | Date column was converted into Year, Month, Day, and WeekOfYear features to capture temporal patterns |
-| Missing Value Handling | Missing competitor and promotion information was treated as absence of business activity              |
-| Competition Features   | CompetitionDistance missing values were replaced using median imputation                              |
-| Promotion Features     | Missing Promo2 details were replaced with zero/default categories                                     |
-| Feature Expansion      | Original 18 columns were transformed into ML-ready features capturing temporal and business behavior  |
-
-| Analysis            | Finding                                                                                                            |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Feature Engineering | Additional business features were created to improve model understanding of retail behavior                        |
-| Competition Feature | CompetitionAge captures the impact of competitor presence over time                                                |
-| Promotion Feature   | Promo2Age represents the duration of long-term promotional campaigns                                               |
-| Temporal Feature    | Weekend indicators were added to capture weekly customer patterns                                                  |
-| Data Filtering      | Closed-store records were removed because they contain zero sales and do not represent demand prediction scenarios |
-
-| Analysis            | Finding                                                                                           |
-| ------------------- | ------------------------------------------------------------------------------------------------- |
-| Feature Engineering | Created additional business features to improve ML model understanding of retail patterns         |
-| CompetitionAge      | Captures duration of competitor presence near each store                                          |
-| Promo2Age           | Represents duration of long-term promotional campaigns                                            |
-| Weekend Behavior    | Added weekend indicator to capture weekly customer variations                                     |
-| Data Cleaning       | Removed closed-store records since they contain zero sales and do not represent demand prediction |
-| Feature Refinement  | Removed constant Open indicators after filtering inactive stores                                  |
-
-| Analysis          | Finding                                                                                            |
-| ----------------- | -------------------------------------------------------------------------------------------------- |
-| Dataset Filtering | Removed closed-store records, reducing dataset from 1,017,209 to 844,392 active sales observations |
-| CompetitionAge    | Created feature representing competitor presence duration; average competition age was 3.56 years  |
-| Promo2Age         | Created promotion duration feature with average duration of 1.08 years                             |
-| Weekend Behavior  | Added weekend indicator; approximately 17.5% of observations occurred on weekends                  |
-| Feature Expansion | Original business attributes were transformed into 24 ML-ready features                            |
-
-| Analysis           | Finding                                                                                                                 |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| Data Type Cleaning | Converted categorical variables into consistent string format before encoding to handle mixed numerical and text values |
-| Encoding Strategy  | Applied Label Encoding to transform categorical business attributes into numerical representations                      |
-
-| Analysis             | Finding                                                                                  |
-| -------------------- | ---------------------------------------------------------------------------------------- |
-| Categorical Encoding | Converted categorical variables into numerical representations for ML compatibility      |
-| Encoded Variables    | StateHoliday, StoreType, Assortment, and PromoInterval were label encoded                |
-| Data Type Handling   | Converted mixed string/integer categories into consistent formats before encoding        |
-| Feature Cleanup      | Removed constant IsOpen feature since all remaining observations represent active stores |
-
-| Analysis                | Finding                                                                           |
-| ----------------------- | --------------------------------------------------------------------------------- |
-| Data Splitting Strategy | Used chronological train-test split to preserve real-world forecasting conditions |
-| Avoided Random Split    | Prevented future information leakage into model training                          |
-| Training Data           | Earlier historical sales records were used for model learning                     |
-| Testing Data            | Future observations were reserved for unbiased evaluation                         |
-
-### Baseline Model
-
-A mean-based regression baseline was implemented to establish a reference performance level before applying machine learning algorithms.
-
-The model predicts the average historical sales value for every test observation.
-
-Evaluation metrics:
-
-| Metric | Result |
-|---|---:|
-| MAE | 2239.94 |
-| RMSE | 3070.02 |
-
-MAPE was not considered reliable because zero-sales observations cause division instability. Future model evaluation will use a zero-safe MAPE calculation.
-
-This baseline provides a minimum benchmark that advanced ML models must outperform.
-
-### Models Implemented
-
-| Model | MAE | RMSE | MAPE |
-|---|---:|---:|---:|
-| Baseline Mean Predictor | 2239.94 | 3070.02 | - |
-| Linear Regression | 1991.76 | 2761.12 | 42.31 |
-| Random Forest | 804.17 | 1190.38 | 11.43 |
-
-Top influencing features(under RF):
-
-| Feature | Importance | Business Interpretation |
-|---|---:|---|
-| CompetitionDistance | 20.09% | Store location relative to competitors strongly affects sales |
-| Store | 16.61% | Individual store characteristics significantly influence demand |
-| Promo | 14.83% | Promotional campaigns have a major impact on sales |
-| Competition Opening Features | ~13% | Competitor presence affects store performance |
-| DayOfWeek | 6.47% | Weekly customer behaviour influences demand |
-| WeekOfYear | 4.00% | Seasonal patterns contribute to sales variation |
-### Key Insights
-
-- Sales prediction is strongly influenced by competitive environment and store-level characteristics.
-- Promotional activities are a major controllable factor affecting revenue.
-- Calendar-based features capture recurring demand patterns.
-- The importance of Store ID indicates significant variation between locations, suggesting store-specific modelling can further improve predictions.
-# 4.7 XGBoost Regression
-
-XGBoost (Extreme Gradient Boosting) was implemented as an advanced tree-based ensemble model to further improve prediction accuracy.
-
-Unlike Random Forest, which builds independent decision trees, XGBoost builds trees sequentially where each new tree corrects the errors made by previous trees.
-
-## Performance
-| Model | MAE | RMSE | MAPE |
-|---|---:|---:|---:|
-| Mean Baseline | 2239.94 | 3070.02 | - |
-| Linear Regression | 1991.76 | 2761.12 | 42.31% |
-| Random Forest | 804.17 | 1190.38 | 11.43% |
-| XGBoost | **792.78** | **1137.41** | 11.59% |
-
-## Findings
-
-- XGBoost achieved the lowest MAE and RMSE among all evaluated machine learning models.
-- Compared with Random Forest:
-  - MAE improved from 804.17 → 792.78
-  - RMSE improved from 1190.38 → 1137.41
-- The improvement indicates that gradient boosting captured additional non-linear relationships between:
-  - Store characteristics
-  - Competition factors
-  - Promotional campaigns
-  - Calendar-based demand patterns
-
-Although MAPE is marginally higher than Random Forest, the overall error reduction makes XGBoost the strongest performing model so far.
-# 4.9 Model Saving and Deployment Preparation
-
-The final XGBoost model was saved using Joblib for future predictions.
-
-Saved model:models/xgboost_sales_forecaster.pkl
-
-The saved model can be loaded independently without retraining, enabling future integration with:
-
-- Streamlit dashboard
-- Prediction API
-- Automated forecasting pipeline
-
-## Final Phase 4 Outcome
-
-A complete machine learning forecasting pipeline was developed:
-# 4.10 Model Validation After Saving
-
-The saved XGBoost model was loaded independently and tested on unseen test samples to ensure that the serialization process preserved model performance.
-
-Example predictions:
-
-| Actual Sales | Predicted Sales |
-|---:|---:|
-| 5942 | 6579.84 |
-| 8423 | 8609.78 |
-| 7642 | 7046.03 |
-| 6338 | 6696.49 |
-| 9972 | 8763.07 |
-
-## Validation Findings
-
-- The loaded model successfully generated predictions without retraining.
-- Predicted values closely followed actual sales values.
-- This confirms that the trained model can be reused for future inference.
-
-The final machine learning pipeline is now ready for integration into an application layer.
-
-# Phase 1 Findings: Classical Time Series Forecasting
-
-| Analysis | Finding |
-|---|---|
-| Dataset Preparation | Retail sales data was aggregated into daily time-series format for forecasting |
-| Forecasting Objective | The objective was to predict future sales patterns using historical demand behaviour |
-| Time-Series Structure | Sales data was ordered chronologically to preserve temporal dependencies |
-| Data Frequency | Daily sales observations were used to capture short-term and weekly demand variations |
-| Dataset Split | Historical observations were divided into training and testing periods for unbiased evaluation |
-
-| Analysis | Finding |
-|---|---|
-| Exploratory Analysis | Sales trends, fluctuations, and recurring patterns were analysed before modelling |
-| Trend Behaviour | Sales showed variation over time indicating changing demand patterns |
-| Seasonal Behaviour | Weekly recurring patterns were observed, suggesting strong day-based seasonality |
-| Forecasting Challenge | Retail sales contain irregular demand fluctuations caused by promotions, holidays, and business factors |
-| Model Requirement | Multiple forecasting approaches were tested to identify the most suitable baseline model |
-
-| Analysis | Finding |
-|---|---|
-| Stationarity Testing | Augmented Dickey-Fuller (ADF) test was performed to check time-series stationarity |
-| ADF Result | P-value = 6.43 × 10⁻⁵ indicating the sales series is stationary |
-| Differencing Requirement | Additional differencing was not required for ARIMA-based models |
-| Statistical Behaviour | The series maintained stable mean and variance characteristics suitable for forecasting |
-
-| Analysis | Finding |
-|---|---|
-| Autocorrelation Analysis | ACF and PACF plots were analysed to identify temporal relationships |
-| Weekly Seasonality | Strong autocorrelation peaks were observed at lag 7, 14, 21, and 28 |
-| Seasonal Pattern | The presence of 7-day repeating behaviour confirmed weekly seasonality |
-| Model Selection Impact | Seasonal forecasting models were considered due to observed weekly demand cycles |
-
-| Analysis | Finding |
-|---|---|
-| Naive Forecast | Used previous sales value as future prediction baseline |
-| Seasonal Naive | Used previous week's sales pattern to capture weekly repetition |
-| Moving Average | Smoothed short-term fluctuations using historical averages |
-| Weighted Moving Average | Assigned higher importance to recent observations |
-| SES | Captured level-based forecasting behaviour |
-| Holt Method | Modelled trend-based patterns |
-| Holt-Winters | Incorporated level, trend, and seasonality components |
-
-# Model Performance Comparison
-
-| Model | MAE | RMSE | MAPE |
-|---|---:|---:|---:|
-| Naive Forecast | 2687301 | 3851607 | 543.02% |
-| Seasonal Naive | 2911575 | 4072885 | 119.21% |
-| Moving Average | 2306305 | 3264030 | 438.61% |
-| Weighted Moving Average | 2408865 | 3476268 | 489.63% |
-| SES | 2333334 | 3228629 | 407.20% |
-| Holt | 5190674 | 6321653 | 712.32% |
-| Holt-Winters | **1250170** | **1789503** | **88.84%** |
-
-# Best Classical Forecasting Model
-
-## Holt-Winters Exponential Smoothing
-
-Holt-Winters achieved the best forecasting performance among classical statistical models.
-
-## Findings
-
-- Holt-Winters achieved the lowest MAE and RMSE.
-- The model effectively captured:
-  - Weekly seasonal behaviour
-  - Underlying sales level
-  - Short-term demand fluctuations
-- Seasonal models significantly outperformed simple forecasting approaches.
-- The results confirm that retail sales contain strong repeating weekly patterns.
-
-# Business Insights
-
-- Retail demand is strongly influenced by recurring weekly customer behaviour.
-- Simple forecasting methods struggle with irregular retail fluctuations.
-- Incorporating seasonality improves forecast accuracy significantly.
-- Classical forecasting models provide a strong benchmark before applying advanced machine learning approaches.
-
-# Phase 1 Outcome
-
-A complete classical time-series forecasting pipeline was developed:
-
-
-# Phase 2 Findings: ARIMA & SARIMA Forecasting
-
-| Analysis | Finding |
-|---|---|
-| Objective | Advanced statistical forecasting models were implemented to improve upon classical forecasting benchmarks |
-| Approach | ARIMA and SARIMA models were evaluated using autoregressive, moving average, and seasonal components |
-| Model Selection | ACF and PACF analysis from Phase 1 guided AR and MA parameter selection |
-| Seasonal Pattern | Weekly seasonality identified in Phase 1 was incorporated using seasonal SARIMA components |
-
-| Analysis | Finding |
-|---|---|
-| Stationarity Testing | Augmented Dickey-Fuller (ADF) test was performed before ARIMA modelling |
-| ADF Statistic | -4.7616 |
-| P-value | 6.43 × 10⁻⁵ |
-| Interpretation | The sales series was stationary, therefore additional differencing was not required |
-| Differencing Order | Integrated component was set as d = 0 |
-
-| Analysis | Finding |
-|---|---|
-| ACF Analysis | Strong autocorrelation peaks were observed at seasonal lags |
-| Significant Lags | Lag 7, 14, 21, and 28 showed strong positive autocorrelation |
-| Seasonal Period | Weekly seasonality with period 7 was confirmed |
-| Model Decision | Seasonal ARIMA models were preferred over non-seasonal ARIMA |
-
-| Analysis | Finding |
-|---|---|
-| ARIMA Model | ARIMA(1,0,1) was implemented as a non-seasonal benchmark |
-| SARIMA Model | SARIMA models incorporated weekly seasonal behaviour |
-| Parameter Selection | Models were iteratively tested based on statistical significance and evaluation metrics |
-| Evaluation Criteria | Models were compared using MAE, RMSE, and MAPE |
-
-# Model Performance Comparison
-
-| Model | MAE | RMSE | MAPE |
-|---|---:|---:|---:|
-| ARIMA(1,0,1) | 2520905.64 | 3264490.02 | 381.57% |
-| SARIMA(1,0,1)x(1,0,1,7) | **1302160.69** | **1913409.13** | **71.61%** |
-| SARIMA(5,0,0)x(1,0,[1],7) | 1507592.87 | 2128379.78 | 86.62% |
-
-# Best Statistical Forecasting Model
-
-## SARIMA(1,0,1)x(1,0,1,7)
-
-SARIMA provided the strongest performance among ARIMA-family models.
-
-## Findings
-
-- Seasonal SARIMA significantly improved forecasting accuracy compared with standard ARIMA.
-- Incorporating weekly seasonality reduced forecasting errors.
-- The seasonal autoregressive component captured recurring weekly demand behaviour.
-- SARIMA achieved lower MAE and RMSE compared with non-seasonal ARIMA.
-
-# Statistical Model Diagnostics
-
-| Analysis | Finding |
-|---|---|
-| Ljung-Box Test | Residuals showed no significant remaining autocorrelation |
-| Seasonal Component | Weekly seasonal dependency was successfully captured |
-| Model Limitation | Residual distribution remained non-normal due to retail demand volatility |
-| Business Impact | Statistical models provide reliable short-term forecasts but cannot fully capture external business factors |
-
-# Business Insights
-
-- Retail sales exhibit strong weekly recurring behaviour.
-- Seasonal modelling is essential for accurate retail forecasting.
-- ARIMA models alone are limited because they only use historical sales patterns.
-- External factors such as promotions, competition, and store characteristics require machine learning approaches.
-
-# Phase 2 Outcome
-
-A complete ARIMA-family forecasting pipeline was developed:
-
-
-# Phase 3 Findings: Prophet Time Series Forecasting
-
-| Analysis | Finding |
-|---|---|
-| Objective | Prophet forecasting model was implemented as an alternative time-series approach |
-| Model Type | Prophet is a decomposable forecasting model based on trend and seasonality components |
-| Forecasting Components | Model captures trend, weekly seasonality, yearly seasonality, and uncertainty intervals |
-| Purpose | Evaluate whether automated seasonal decomposition improves forecasting performance |
-
-| Analysis | Finding |
-|---|---|
-| Data Preparation | Sales data was converted into Prophet-required format with date column (ds) and target variable (y) |
-| Training Strategy | Historical sales data was used for training while future observations were reserved for evaluation |
-| Forecast Horizon | Future sales values were generated for the testing period |
-| Output Generation | Prophet produced predicted sales values along with confidence intervals |
-
-| Analysis | Finding |
-|---|---|
-| Trend Component | Prophet captured the underlying long-term sales movement |
-| Weekly Seasonality | Weekly demand variations were incorporated automatically |
-| Yearly Seasonality | Annual patterns were considered during forecasting |
-| Forecast Flexibility | Model handled changing trends without manual parameter tuning |
-
-# Prophet Model Performance
-
-| Model | MAE | RMSE | MAPE |
-|---|---:|---:|---:|
-| Prophet | 1510428.54 | 2101397.93 | 107.32% |
-
-# Findings
-
-- Prophet successfully captured overall sales trends and seasonal behaviour.
-- Forecast performance was competitive with classical statistical models.
-- The model automatically detected seasonal patterns without requiring manual ACF/PACF analysis.
-- Higher MAPE indicates difficulty in accurately predicting low-sales observations.
-
-# Comparison With Previous Forecasting Approaches
-
-| Model Category | Strength | Limitation |
+| Test | Finding | Interpretation |
 |---|---|---|
-| Classical Models | Strong performance on historical patterns and seasonality | Limited business feature understanding |
-| ARIMA/SARIMA | Captures autocorrelation and seasonal dependencies | Requires manual parameter tuning |
-| Prophet | Automatic trend and seasonality modelling | Less effective when external business variables dominate |
+| ADF (original series) | p = 6.43 × 10⁻⁵ | Series is stationary |
+| ADF (differenced series) | p = 3.75 × 10⁻²⁶ | Highly stationary |
+| Differencing needed? | No | `d = 0` selected |
 
-# Business Insights
+ACF and PACF plots told a consistent story: sharp spikes at lags **7, 14, 21, and 28** — an unmistakable weekly fingerprint. Plain ARIMA, which knows nothing about seasonality, was always going to struggle.
 
-- Sales forecasting requires both temporal understanding and business context.
-- Trend and seasonality alone cannot fully explain retail demand fluctuations.
-- Promotional campaigns, store characteristics, and competition effects must be incorporated for improved prediction accuracy.
+| Model | MAE | RMSE | MAPE |
+|---|---:|---:|---:|
+| ARIMA(1,0,1) | 2,520,905.64 | 3,264,490.02 | 381.57% |
+| **SARIMA(1,0,1)(1,0,1,7)** | **1,302,160.69** | **1,913,409.13** | **71.61%** |
+| SARIMA(5,0,0)(1,0,[1],7) | 1,507,592.87 | 2,128,379.78 | 86.62% |
 
-# Phase 3 Outcome
+A quick detour: an attempt at SARIMA(7,0,0)(1,0,1,7) failed outright — lag 7 was double-booked in both the seasonal and non-seasonal AR terms. Swapping in a lower-order AR(5) fixed the conflict, but it didn't beat the simpler model.
 
-A complete Prophet forecasting pipeline was developed:
+**The winner — SARIMA(1,0,1)(1,0,1,7)** — carried a seasonal AR coefficient of **≈0.999**, meaning: *whatever happened on this weekday last week is an extremely strong predictor of today.* Adding more autoregressive complexity (AR(5)) didn't help; the weekly seasonal term was already doing the heavy lifting.
+
+| Metric | Better Model |
+|---|---|
+| MAE | Holt-Winters (1.25M vs 1.30M) |
+| RMSE | Holt-Winters (1.79M vs 1.91M) |
+| MAPE | **SARIMA (71.61% vs 88.84%)** |
+
+**Phase 2 verdict:** SARIMA formalizes what Holt-Winters found intuitively — weekly seasonality is the dominant force in this data. Residual diagnostics (Ljung-Box) confirmed the seasonal structure was fully captured, though real-world volatility kept residuals non-normal. Statistical models, however, only ever look backward at sales history — they know nothing about *why* those patterns exist. Phase 3 tries a more automated lens.
+
+---
+
+## 🧭 Chapter 3 — Prophet: The Automated Storyteller
+
+*App page: `🔮 Phase 3 - Prophet Forecasting`*
+
+Facebook's Prophet promised something appealing: automatic decomposition of trend, weekly seasonality, and yearly seasonality — no manual ACF/PACF detective work required.
+
+| Model | MAE | RMSE | MAPE |
+|---|---:|---:|---:|
+| Prophet | 1,510,428.54 | 2,101,397.93 | 107.32% |
+
+Prophet did successfully identify the long-term upward trend and both weekly and yearly seasonal cycles — all without any manual tuning. But when placed next to the competition, it came in behind both:
+
+| Model Family | Strength | Limitation |
+|---|---|---|
+| Classical (Holt-Winters) | Strong on historical seasonality | No business-context awareness |
+| ARIMA/SARIMA | Captures autocorrelation precisely | Requires manual parameter tuning |
+| **Prophet** | Fully automated decomposition | Weaker when external business factors dominate |
+
+**Phase 3 verdict:** convenience isn't the same as accuracy. Prophet's hands-off approach couldn't out-perform SARIMA's deliberately-tuned seasonal modeling. More importantly, it exposed the real limitation of *every* model so far: none of them knew anything about promotions, competitors, or store types. That's where the story finally turns to machine learning.
+
+---
+
+## 🧭 Chapter 4 — Machine Learning: Teaching the Model *Why*
+
+*App page: `🤖 Phase 4 - Machine Learning`*
+
+This chapter changes the question. Instead of "what happened historically on this date?", it asks: **"what business conditions were in play?"** Sales data was merged with store metadata — competition distance, store type, assortment, promotions — and engineered into **24 ML-ready features**, including `CompetitionAge`, `Promo2Age`, and weekend indicators. Closed-store records (zero-sales-by-definition) were removed, trimming the dataset from 1,017,209 to **844,392 active observations**.
+
+A chronological train-test split preserved real-world forecasting conditions — no future data leaking backward into training.
+
+| Model | MAE | RMSE | MAPE |
+|---|---:|---:|---:|
+| Mean Baseline | 2,239.94 | 3,070.02 | — |
+| Linear Regression | 1,991.76 | 2,761.12 | 42.31% |
+| Random Forest | 804.17 | 1,190.38 | 11.43% |
+| **XGBoost** | **792.78** | **1,137.41** | 11.59% |
+
+*(Note the scale shift: these are per-store daily errors, not aggregated totals — this is why the numbers look so much smaller than earlier phases.)*
+
+**What actually drives sales**, per Random Forest feature importance:
+
+| Feature | Importance | Business Meaning |
+|---|---:|---|
+| CompetitionDistance | 20.09% | Location relative to competitors matters a lot |
+| Store (identity) | 16.61% | Individual store characteristics vary significantly |
+| Promo | 14.83% | Promotions strongly move sales |
+| Competition opening features | ~13% | Timing of competitor entry affects performance |
+| DayOfWeek | 6.47% | Weekly rhythm still matters |
+| WeekOfYear | 4.00% | Seasonal calendar effects persist |
+
+Other EDA-level findings that reinforced the feature importance results:
+
+| Factor | Effect |
+|---|---|
+| Promo active | Sales rise ~81% (4,406 → 7,991 average) |
+| Store Type B | Highest revenue (10,059) vs. A/C/D (~5,700–5,740) |
+| Assortment "Extra" | Highest average sales (8,554) vs. Basic (5,481) |
+| Promo2 active | *Lower* average sales (5,424 vs 6,125) — likely because Promo2 is deployed to prop up underperforming stores, not reward strong ones |
+
+**XGBoost was selected as the final deployed model**, edging out Random Forest on both MAE and RMSE by capturing non-linear interactions between competition, promotions, and calendar effects that simpler models missed. The trained model was serialized with Joblib, reloaded independently, and validated against unseen samples to confirm predictions held up after saving — clearing it for deployment into this Streamlit app.
+
+**Phase 4 verdict:** business context — not just historical sales patterns — is what ultimately separates a good forecast from a great one.
+
+---
+
+## 🏆 The Full Arc, at a Glance
+
+| Phase | Approach | Best Model | Key Metric |
+|---|---|---|---|
+| 1 | Classical Smoothing | Holt-Winters | MAE 1.25M |
+| 2 | Statistical (ARIMA family) | SARIMA(1,0,1)(1,0,1,7) | MAPE 71.61% |
+| 3 | Automated Decomposition | Prophet | MAE 1.51M *(underperformed 1 & 2)* |
+| 4 | Machine Learning | **XGBoost** | **MAE 792.78 (per-store)** |
+
+---
+
+## 🎯 The App Itself
+
+The Streamlit app mirrors this journey exactly — each phase gets its own page, plus a live prediction tool:
+
+- **🏠 Overview** — project summary, tech stack, modeling pipeline
+- **📊 Phase 1** — Data understanding & classical forecasting visuals
+- **📈 Phase 2** — ARIMA/SARIMA diagnostics and forecasts
+- **🔮 Phase 3** — Prophet trend/seasonality decomposition
+- **🤖 Phase 4** — Feature importance & ML model comparison
+- **🎯 Sales Prediction** — Real-time sales forecast using the deployed XGBoost model
+
+👉 **Try it live:** [retailpulse-forecasting-ai.streamlit.app](https://retailpulse-forecasting-ai.streamlit.app/)
+
+---
+
+## 🛠️ Technology Stack
+
+`Python` · `Pandas` · `NumPy` · `Statsmodels` · `Prophet` · `Scikit-Learn` · `XGBoost` · `Streamlit`
+
+---
+
+## 📂 Project Structure
+
+```text
+RetailPulse-AI/
+│
+├── app/
+│   └── app.py                             # Streamlit dashboard application
+│
+├── asset/
+│   ├── icon.png                           # Application icon
+│   │
+│   ├── phase1/                            # Time Series Forecasting Assets
+│   │   ├── sales_over_time.png
+│   │   └── holt_winters_forecast.png
+│   │
+│   ├── phase2/                            # ARIMA & SARIMA Forecasting Assets
+│   │   ├── acf_plot.png
+│   │   ├── pacf_plot.png
+│   │   ├── first_difference_series.png
+│   │   ├── arima_forecast.png
+│   │   └── sarima_forecast.png
+│   │
+│   ├── phase3/                            # Prophet Forecasting Assets
+│   │   ├── prophet_forecast.png
+│   │   ├── prophet_trend.png
+│   │   ├── prophet_weekly.png
+│   │   └── prophet_yearly.png
+│   │
+│   └── phase4/                            # Machine Learning Assets
+│       ├── feature_importance.png
+│       └── xgboost_actual_vs_predicted.png
+│
+├── data/
+│   ├── raw/                               # Original Kaggle dataset files
+│   │   ├── train.csv
+│   │   ├── test.csv
+│   │   ├── store.csv
+│   │   └── sample_submission.csv
+│   │
+│   └── processed/                         # Cleaned and transformed datasets
+│
+├── models/
+│   ├── encoders.pkl                       # Saved categorical encoders
+│   └── xgboost_sales_forecaster.pkl       # Trained XGBoost forecasting model
+│
+├── notebooks/
+│   ├── 01_data_understanding.ipynb        # Dataset exploration and EDA
+│   ├── 02_phase1_forecasting.ipynb        # Holt-Winters forecasting model
+│   ├── 03_phase2_arima_sarima.ipynb       # ARIMA and SARIMA forecasting
+│   ├── 04_phase3_prophet.ipynb            # Prophet forecasting model
+│   └── 05_phase4_machine_learning.ipynb   # ML models and evaluation
+│
+├── reports/
+│   └── RetailPulse_AI_Summary_Report.pdf  # Complete project report
+│
+├── requirements.txt                       # Project dependencies
+├── README.md                              # Project documentation
+└── .gitignore                             # Git ignored files
+
+```
+
+## ⚙️ Getting Started — Run This Project Yourself
+
+Follow these commands to clone, set up, and run RetailPulse AI locally.
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/janhavitayade/retailpulse-ai.git
+cd retailpulse-ai
+```
+
+### 2. Create and activate a virtual environment
+
+**Windows:**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+**macOS / Linux:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 3. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+> If `requirements.txt` isn't present yet, generate one after installing your packages with:
+> ```bash
+> pip freeze > requirements.txt
+> ```
+> At minimum, this project needs:
+> ```bash
+> pip install streamlit pandas numpy scikit-learn xgboost statsmodels prophet joblib matplotlib
+> ```
+
+### 4. Add the dataset
+
+Download the data from Kaggle and place the CSVs inside `data/raw/`:
+
+```
+data/raw/
+├── train.csv
+├── test.csv
+├── store.csv
+└── sample_submission.csv
+```
+
+📦 Dataset: [Rossmann Store Sales — Kaggle](https://www.kaggle.com/c/rossmann-store-sales/data)
+
+*(You'll need a free Kaggle account and to accept the competition rules to download.)*
+
+### 5. Run the notebooks (optional — to reproduce the model)
+
+If you want to retrain the model from scratch instead of using the saved `.pkl` files:
+
+```bash
+jupyter notebook notebooks/01_data_understanding.ipynb
+```
+
+Run the notebooks in order:
+
+```
+01_data_understanding.ipynb        → EDA & data quality checks
+02_phase1_forecasting.ipynb        → Holt-Winters & classical models
+03_phase2_arima_sarima.ipynb       → ARIMA / SARIMA
+04_phase3_prophet.ipynb            → Prophet forecasting
+05_phase4_machine_learning.ipynb   → Random Forest & XGBoost (final model)
+```
+
+This will regenerate `models/xgboost_sales_forecaster.pkl` and `models/encoders.pkl`.
+
+### 6. Launch the Streamlit app
+
+```bash
+streamlit run app/app.py
+```
+
+The app will open automatically at:
+
+```
+http://localhost:8501
+```
+
+### 7. (Optional) Deploy your own copy on Streamlit Cloud
+
+1. Push your repo to GitHub.
+2. Go to [share.streamlit.io](https://share.streamlit.io).
+3. Click **New app** → select your repo → set the main file path to `app/app.py`.
+4. Click **Deploy**.
